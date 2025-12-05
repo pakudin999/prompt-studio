@@ -478,24 +478,26 @@ export const generateViralBatchPrompts = async (base64ImageData: string, mimeTyp
 };
 
 export const generateCollagePrompt = async (base64ImageData: string, mimeType: string, collageCount: number) => {
-    const systemPrompt = `You are a creative director specializing in lifestyle montage and collage aesthetics for social media (TikTok/Reels/Instagram). Your task is to generate a **single, cohesive, and highly visual prompt** that describes a split-screen or fast-cut montage featuring the provided product.
+    const systemPrompt = `You are a creative director specializing in lifestyle montage and collage aesthetics for social media (TikTok/Reels/Instagram). Your task is to generate a **single, cohesive, and highly visual prompt** describing a split-screen or fast-cut montage featuring the provided product.
 
     **YOUR PROCESS:**
-    1.  **Analyze the Product:** Deeply analyze the uploaded product image. Understand its vibe (luxury, cozy, adventurous, minimalist), material, and usage.
-    2.  **Brainstorm Scenarios:** Imagine ${collageCount} distinct, quick lifestyle moments or 'cuts' involving this product. These moments should be from different perspectives (e.g., POV, close-up, wide shot) but share a consistent aesthetic theme.
-    3.  **Construct the Prompt:** Write ONE detailed prompt following this structure:
-        "A series of quick, aesthetic cuts [or a ${collageCount}-panel split screen] from the wearer's POV featuring [Product Name/Description]: [Scene 1], [Scene 2], and [Scene 3]..."
+    1.  **Analyze the Product:** Deeply analyze the uploaded product image (vibe, material, usage).
+    2.  **Follow the Style Guide:** The user wants "quick, aesthetic cuts from the wearer's POV".
+        *   **Example Style:** "A series of quick, aesthetic cuts from the wearer's POV: the hand with the ring stirring a creamy iced latte, turning the page of a hardcover book, and resting on the steering wheel of a vintage car."
+    3.  **Construct the Prompt:** Generate ${collageCount} distinct scenarios that match this aesthetic.
+        *   Use phrases like "quick cuts", "POV", "split screen".
+        *   Ensure the actions are relevant to the specific product found in the image.
     
     **KEY REQUIREMENTS:**
-    -   The prompt must be in **English**.
-    -   It must vividly describe exactly ${collageCount} distinct scenes/cuts.
-    -   The scenes must be relevant to the product analyzed (e.g., if it's a ring, show hands; if it's a shoe, show feet/walking).
-    -   The tone should be "quick, aesthetic, and viral".
+    -   Output ONE detailed prompt.
+    -   English language.
+    -   Must contain exactly ${collageCount} distinct scenes/cuts.
+    -   Tone: "quick, aesthetic, viral, POV".
 
     **OUTPUT FORMAT:**
     The final output MUST be a single, valid JSON object with the key "prompt".`;
 
-    const userQuery = `Analyze this product and generate a ${collageCount}-part lifestyle collage/montage prompt.`;
+    const userQuery = `Analyze this product and generate a ${collageCount}-part lifestyle collage/montage prompt based on the aesthetic POV style.`;
 
     try {
         const response = await ai.models.generateContent({
