@@ -1,0 +1,5 @@
+{
+  "name": "AI Prompt Generator Studio 2.8",
+  "description": "A sophisticated two-in-one tool for generating AI prompts. It features a per-image analyzer for creating professional video movement prompts and a detailed form for building consistent character description prompts.",
+  "requestFramePermissions": []
+}

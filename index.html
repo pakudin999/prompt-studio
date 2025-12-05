@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Generator Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* For Webkit-based browsers (Chrome, Safari) */
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #6b21a8;
+          border-radius: 20px;
+        }
+        
+        /* From Uiverse.io by njesenberger - Retro Toggle Switch CSS */
+        .toggle-container {
+          --knob-size: 1.75em;
+          display: flex;
+          justify-content: center;
+          position: relative;
+        }
+
+        .toggle-input {
+          position: absolute;
+          z-index: 2;
+          bottom: 132.5%;
+          border-radius: 50%;
+          transform: rotate(-25deg);
+          transform-origin: 50% 4.75em;
+          width: var(--knob-size);
+          height: var(--knob-size);
+          opacity: 0;
+          /* fix em sizing */
+          font: inherit;
+          transition: transform .24s cubic-bezier(.65, 1.35, .5, 1);
+          cursor: pointer;
+        }
+
+        .toggle-input:checked {
+          transform: rotate(25deg);
+        }
+
+        .toggle-handle-wrapper {
+          position: absolute;
+          z-index: 1;
+          bottom: -135%;
+          -webkit-mask-image: linear-gradient(to bottom, #000 62.125%, transparent 50%);
+          mask-image: linear-gradient(to bottom, #000 62.125%, transparent 50%);
+          width: 200%;
+          overflow: hidden;
+        }
+
+        .toggle-handle {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          transform: rotate(-25deg);
+          transform-origin: bottom center;
+          transition: transform .24s cubic-bezier(.65, 1.35, .5, 1);
+        }
+
+        .toggle-input:checked + .toggle-handle-wrapper > .toggle-handle {
+          transform: rotate(25deg);
+        }
+
+        .toggle-handle-knob {
+          position: relative;
+          z-index: 1;
+          border-radius: 50%;
+          width: var(--knob-size);
+          height: var(--knob-size);
+          background-image: radial-gradient(farthest-corner at 70% 30%, #fedee2 4%, #d63534 12% 24%, #a81a1a 50% 65%, #d63534 75%);
+          transition: transform .24s cubic-bezier(.65, 1.35, .5, 1);
+        }
+
+        .toggle-input:checked + .toggle-handle-wrapper .toggle-handle-knob {
+          transform: rotate(-90deg);
+        }
+
+        /* toggle handle knob hover inner shadow */
+        .toggle-handle-knob::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          border-radius: inherit;
+          width: 100%;
+          height: 100%;
+          box-shadow: inset 0 0 8px 2px rgb(255 255 255 / .4);
+          opacity: 0;
+          transition: opacity .2s;
+        }
+
+        @media (hover: hover) {
+          .toggle-input:hover + .toggle-handle-wrapper .toggle-handle-knob::after,
+          .toggle-input:focus-visible + .toggle-handle-wrapper .toggle-handle-knob::after {
+            opacity: 1;
+          }
+        }
+
+        .toggle-handle-bar-wrapper {
+          position: relative;
+          width: .5em;
+          height: 3em;
+        }
+
+        .toggle-handle-bar {
+          position: absolute;
+          top: calc(var(--knob-size) / 2 * -1);
+          left: 0;
+          width: 100%;
+          height: calc(100% + var(--knob-size) / 2);
+          background-image: linear-gradient(to right, #777475, #a4a4a4, #fff 45% 55%, #a4a4a4, #777475);
+          background-position-x: .06125em;
+          transition: background-position-x .24s cubic-bezier(.65, 1.35, .5, 1);
+          box-shadow: inset 0 1em .25em rgb(0 0 0 / .4);
+        }
+
+        .toggle-input:checked + .toggle-handle-wrapper .toggle-handle-bar {
+          background-position-x: -.06125em;
+        }
+
+        .toggle-base {
+          position: relative;
+          border-radius: 3.125em;
+          padding: .25em;
+          width: 3.5em;
+          height: 1.125em;
+          background-color: #fff;
+          background-image: linear-gradient(to bottom, #fff, #d7d7d7);
+          box-shadow: 0 -.25em .5em #fff, 0 .25em .5em #d7d7d7;
+        }
+
+        .toggle-base-inside {
+          position: relative;
+          border-radius: inherit;
+          width: 100%;
+          height: 100%;
+          background-image: linear-gradient(to bottom, #a6a6a6, #7d7d7d);
+          box-shadow: inset 0 .0625em rgb(255 255 255 / .2), inset 0 -.03125em rgb(255 255 255 / 1), inset 0 -.0625em .25em rgb(0 0 0 / .1);
+        }
+
+        /* toggle base inside active */
+        .toggle-base-inside::after {
+          content: '';
+          position: absolute;
+          border-radius: inherit;
+          width: 100%;
+          height: 100%;
+          background-image: linear-gradient(to bottom, #5ab054, #438c3c);
+          box-shadow: inherit;
+          opacity: 0;
+          transition: opacity .24s cubic-bezier(.65, 1.35, .5, 1);
+        }
+
+        .toggle-input:checked ~ .toggle-base .toggle-base-inside::after {
+          opacity: 1;
+        }
+        
+        /* From Uiverse.io by 00Kubi - Neon Checkbox */
+        .neon-checkbox {
+          --primary: #00ffaa;
+          --primary-dark: #00cc88;
+          --primary-light: #88ffdd;
+          --size: 24px;
+          position: relative;
+          width: var(--size);
+          height: var(--size);
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .neon-checkbox input {
+          display: none;
+        }
+
+        .neon-checkbox__frame {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .neon-checkbox__box {
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.8);
+          border-radius: 4px;
+          border: 2px solid var(--primary-dark);
+          transition: all 0.4s ease;
+        }
+
+        .neon-checkbox__check-container {
+          position: absolute;
+          inset: 2px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .neon-checkbox__check {
+          width: 80%;
+          height: 80%;
+          fill: none;
+          stroke: var(--primary);
+          stroke-width: 3;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-dasharray: 40;
+          stroke-dashoffset: 40;
+          transform-origin: center;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .neon-checkbox__glow {
+          position: absolute;
+          inset: -2px;
+          border-radius: 6px;
+          background: var(--primary);
+          opacity: 0;
+          filter: blur(8px);
+          transform: scale(1.2);
+          transition: all 0.4s ease;
+        }
+
+        .neon-checkbox__borders {
+          position: absolute;
+          inset: 0;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .neon-checkbox__borders span {
+          position: absolute;
+          width: 40px;
+          height: 1px;
+          background: var(--primary);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+
+        .neon-checkbox__borders span:nth-child(1) {
+          top: 0;
+          left: -100%;
+          animation: borderFlow1 2s linear infinite;
+        }
+
+        .neon-checkbox__borders span:nth-child(2) {
+          top: -100%;
+          right: 0;
+          width: 1px;
+          height: 40px;
+          animation: borderFlow2 2s linear infinite;
+        }
+
+        .neon-checkbox__borders span:nth-child(3) {
+          bottom: 0;
+          right: -100%;
+          animation: borderFlow3 2s linear infinite;
+        }
+
+        .neon-checkbox__borders span:nth-child(4) {
+          bottom: -100%;
+          left: 0;
+          width: 1px;
+          height: 40px;
+          animation: borderFlow4 2s linear infinite;
+        }
+
+        .neon-checkbox__particles span {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background: var(--primary);
+          border-radius: 50%;
+          opacity: 0;
+          pointer-events: none;
+          top: 50%;
+          left: 50%;
+          box-shadow: 0 0 6px var(--primary);
+        }
+
+        .neon-checkbox__rings {
+          position: absolute;
+          inset: -20px;
+          pointer-events: none;
+        }
+
+        .neon-checkbox__rings .ring {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          border: 1px solid var(--primary);
+          opacity: 0;
+          transform: scale(0);
+        }
+
+        .neon-checkbox__sparks span {
+          position: absolute;
+          width: 20px;
+          height: 1px;
+          background: linear-gradient(90deg, var(--primary), transparent);
+          opacity: 0;
+        }
+
+        /* Hover Effects */
+        .neon-checkbox:hover .neon-checkbox__box {
+          border-color: var(--primary);
+          transform: scale(1.05);
+        }
+
+        /* Checked State */
+        .neon-checkbox input:checked ~ .neon-checkbox__frame .neon-checkbox__box {
+          border-color: var(--primary);
+          background: rgba(0, 255, 170, 0.1);
+        }
+
+        .neon-checkbox input:checked ~ .neon-checkbox__frame .neon-checkbox__check {
+          stroke-dashoffset: 0;
+          transform: scale(1.1);
+        }
+
+        .neon-checkbox input:checked ~ .neon-checkbox__frame .neon-checkbox__glow {
+          opacity: 0.2;
+        }
+
+        .neon-checkbox
+          input:checked
+          ~ .neon-checkbox__frame
+          .neon-checkbox__borders
+          span {
+          opacity: 1;
+        }
+
+        /* Particle Animations */
+        .neon-checkbox
+          input:checked
+          ~ .neon-checkbox__frame
+          .neon-checkbox__particles
+          span {
+          animation: particleExplosion 0.6s ease-out forwards;
+        }
+
+        .neon-checkbox
+          input:checked
+          ~ .neon-checkbox__frame
+          .neon-checkbox__rings
+          .ring {
+          animation: ringPulse 0.6s ease-out forwards;
+        }
+
+        .neon-checkbox
+          input:checked
+          ~ .neon-checkbox__frame
+          .neon-checkbox__sparks
+          span {
+          animation: sparkFlash 0.6s ease-out forwards;
+        }
+
+        /* Animations */
+        @keyframes borderFlow1 {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(200%);
+          }
+        }
+
+        @keyframes borderFlow2 {
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(200%);
+          }
+        }
+
+        @keyframes borderFlow3 {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-200%);
+          }
+        }
+
+        @keyframes borderFlow4 {
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(-200%);
+          }
+        }
+
+        @keyframes particleExplosion {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+          }
+          20% {
+            opacity: 1;
+          }
+          100% {
+            transform: translate(
+                calc(-50% + var(--x, 20px)),
+                calc(-50% + var(--y, 20px))
+              )
+              scale(0);
+            opacity: 0;
+          }
+        }
+
+        @keyframes ringPulse {
+          0% {
+            transform: scale(0);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+
+        @keyframes sparkFlash {
+          0% {
+            transform: rotate(var(--r, 0deg)) translateX(0) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: rotate(var(--r, 0deg)) translateX(30px) scale(0);
+            opacity: 0;
+          }
+        }
+
+        /* Particle Positions */
+        .neon-checkbox__particles span:nth-child(1) {
+          --x: 25px;
+          --y: -25px;
+        }
+        .neon-checkbox__particles span:nth-child(2) {
+          --x: -25px;
+          --y: -25px;
+        }
+        .neon-checkbox__particles span:nth-child(3) {
+          --x: 25px;
+          --y: 25px;
+        }
+        .neon-checkbox__particles span:nth-child(4) {
+          --x: -25px;
+          --y: 25px;
+        }
+        .neon-checkbox__particles span:nth-child(5) {
+          --x: 35px;
+          --y: 0px;
+        }
+        .neon-checkbox__particles span:nth-child(6) {
+          --x: -35px;
+          --y: 0px;
+        }
+        .neon-checkbox__particles span:nth-child(7) {
+          --x: 0px;
+          --y: 35px;
+        }
+        .neon-checkbox__particles span:nth-child(8) {
+          --x: 0px;
+          --y: -35px;
+        }
+        .neon-checkbox__particles span:nth-child(9) {
+          --x: 20px;
+          --y: -30px;
+        }
+        .neon-checkbox__particles span:nth-child(10) {
+          --x: -20px;
+          --y: 30px;
+        }
+        .neon-checkbox__particles span:nth-child(11) {
+          --x: 30px;
+          --y: 20px;
+        }
+        .neon-checkbox__particles span:nth-child(12) {
+          --x: -30px;
+          --y: -20px;
+        }
+
+        /* Spark Rotations */
+        .neon-checkbox__sparks span:nth-child(1) {
+          --r: 0deg;
+          top: 50%;
+          left: 50%;
+        }
+        .neon-checkbox__sparks span:nth-child(2) {
+          --r: 90deg;
+          top: 50%;
+          left: 50%;
+        }
+        .neon-checkbox__sparks span:nth-child(3) {
+          --r: 180deg;
+          top: 50%;
+          left: 50%;
+        }
+        .neon-checkbox__sparks span:nth-child(4) {
+          --r: 270deg;
+          top: 50%;
+          left: 50%;
+        }
+
+        /* Ring Delays */
+        .neon-checkbox__rings .ring:nth-child(1) {
+          animation-delay: 0s;
+        }
+        .neon-checkbox__rings .ring:nth-child(2) {
+          animation-delay: 0.1s;
+        }
+        .neon-checkbox__rings .ring:nth-child(3) {
+          animation-delay: 0.2s;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-900">
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+</body>
+</html>
